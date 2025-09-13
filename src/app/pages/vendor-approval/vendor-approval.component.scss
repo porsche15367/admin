@@ -1,0 +1,337 @@
+// Vendor Approval Styles
+.vendor-approval {
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+  }
+
+  .page-header {
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+
+    .page-header-title h5 {
+      color: #495057;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .breadcrumb {
+      margin: 0;
+      background: none;
+      padding: 0;
+
+      .breadcrumb-item {
+        color: #6c757d;
+        
+        &:before {
+          color: #adb5bd;
+        }
+
+        a {
+          color: #007bff;
+          text-decoration: none;
+          
+          &:hover {
+            color: #0056b3;
+          }
+        }
+      }
+    }
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 0;
+
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      border-radius: 0.5rem 0.5rem 0 0 !important;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .card-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+
+  .input-group {
+    .input-group-text {
+      background-color: #f8f9fa;
+      border-color: #dee2e6;
+      color: #6c757d;
+    }
+
+    .form-control {
+      border-color: #dee2e6;
+      
+      &:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
+    }
+  }
+
+  .form-select {
+    border-color: #dee2e6;
+    
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+  }
+
+  .btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+
+    &.btn-outline-info {
+      color: #0dcaf0;
+      border-color: #0dcaf0;
+      
+      &:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: #fff;
+      }
+    }
+
+    &.btn-outline-success {
+      color: #198754;
+      border-color: #198754;
+      
+      &:hover {
+        background-color: #198754;
+        border-color: #198754;
+        color: #fff;
+      }
+    }
+
+    &.btn-outline-danger {
+      color: #dc3545;
+      border-color: #dc3545;
+      
+      &:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: #fff;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  .table {
+    margin-bottom: 0;
+
+    th {
+      border-top: none;
+      font-weight: 600;
+      color: #495057;
+      background-color: #f8f9fa;
+    }
+
+    td {
+      vertical-align: middle;
+      border-color: #dee2e6;
+    }
+
+    .btn-group {
+      .btn {
+        margin-right: 0.25rem;
+        
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+    }
+  }
+
+  .pagination {
+    .page-link {
+      color: #007bff;
+      border-color: #dee2e6;
+      
+      &:hover {
+        color: #0056b3;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+      }
+    }
+
+    .page-item.active .page-link {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .page-item.disabled .page-link {
+      color: #6c757d;
+      background-color: #fff;
+      border-color: #dee2e6;
+    }
+  }
+
+  .alert {
+    border: none;
+    border-radius: 0.5rem;
+  }
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .modal {
+    .modal-dialog {
+      max-width: 800px;
+    }
+
+    .modal-content {
+      border: none;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      border-radius: 0.5rem 0.5rem 0 0;
+
+      .modal-title {
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        opacity: 0.5;
+        
+        &:hover {
+          opacity: 0.75;
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+
+      h6 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 0.25rem;
+      }
+
+      p {
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+
+        strong {
+          color: #495057;
+        }
+      }
+    }
+
+    .modal-footer {
+      background-color: #f8f9fa;
+      border-top: 1px solid #dee2e6;
+      border-radius: 0 0 0.5rem 0.5rem;
+      padding: 1rem 1.5rem;
+
+      .btn {
+        margin-left: 0.5rem;
+        
+        &:first-child {
+          margin-left: 0;
+        }
+      }
+    }
+  }
+
+  // Status badges
+  .bg-success {
+    background-color: #198754 !important;
+  }
+
+  .bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+  }
+
+  .bg-danger {
+    background-color: #dc3545 !important;
+  }
+
+  .bg-info {
+    background-color: #0dcaf0 !important;
+    color: #000 !important;
+  }
+
+  .bg-secondary {
+    background-color: #6c757d !important;
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    .table-responsive {
+      font-size: 0.875rem;
+    }
+
+    .btn-group {
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .btn {
+        margin-right: 0;
+        margin-bottom: 0.25rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .modal-dialog {
+      margin: 0.5rem;
+      max-width: calc(100% - 1rem);
+    }
+  }
+}

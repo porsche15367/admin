@@ -1,0 +1,226 @@
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="mb-1">Admin Dashboard</h4>
+    <p class="text-muted mb-0">Welcome back, {{ getCurrentUser()?.name || 'Admin' }}!</p>
+  </div>
+  <div>
+    <button class="btn btn-primary" (click)="refreshData()" [disabled]="loading">
+      <i class="anticon anticon-reload" *ngIf="!loading"></i>
+      <span class="spinner-border spinner-border-sm" *ngIf="loading"></span>
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+</div>
+
+<!-- Error Message -->
+<div class="alert alert-danger" *ngIf="error">
+  <i class="anticon anticon-exclamation-circle me-2"></i>
+  {{ error }}
+  <button class="btn btn-sm btn-outline-danger ms-2" (click)="refreshData()">Retry</button>
+</div>
+
+<!-- Loading Spinner -->
+<div class="text-center py-5" *ngIf="loading && !error">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-2 text-muted">Loading dashboard data...</p>
+</div>
+
+<!-- Dashboard Content -->
+<div *ngIf="!loading && !error && dashboardData">
+  <!-- Analytics Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3" *ngFor="let card of analyticsCards">
+      <app-card>
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="avatar avatar-lg rounded-2" [ngClass]="card.background">
+              <i class="anticon" [ngClass]="'anticon-' + card.icon" [ngStyle]="{'font-size': '24px'}"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <div class="d-flex align-items-center">
+              <h6 class="mb-0">{{ card.title }}</h6>
+              <span class="badge" [ngClass]="card.color" *ngIf="card.percentage">
+                <i class="anticon" [ngClass]="card.percentage.startsWith('+') ? 'anticon-rise' : 'anticon-fall'"></i>
+                {{ card.percentage }}
+              </span>
+            </div>
+            <h4 class="mb-0 mt-1" [ngClass]="card.color">{{ card.amount }}</h4>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row mb-4">
+    <!-- Revenue Chart -->
+    <div class="col-lg-8 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Revenue Overview</h5>
+        </div>
+        <div class="card-body">
+          <app-monthly-bar-chart></app-monthly-bar-chart>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Sales Analytics -->
+    <div class="col-lg-4 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Sales Analytics</h5>
+        </div>
+        <div class="card-body">
+          <app-analytics-chart></app-analytics-chart>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Additional Charts Row -->
+  <div class="row mb-4">
+    <!-- Income Overview -->
+    <div class="col-lg-6 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Income Overview</h5>
+        </div>
+        <div class="card-body">
+          <app-income-overview-chart></app-income-overview-chart>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Sales Report -->
+    <div class="col-lg-6 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Sales Report</h5>
+        </div>
+        <div class="card-body">
+          <app-sales-report-chart></app-sales-report-chart>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Recent Orders and Top Vendors -->
+  <div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-8 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Recent Orders</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Vendor</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of recentOrders">
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar avatar-sm rounded-circle me-2" [ngClass]="order.background">
+                        <i class="anticon" [ngClass]="'anticon-' + order.icon"></i>
+                      </div>
+                      <span class="fw-medium">{{ order.title }}</span>
+                    </div>
+                  </td>
+                  <td>{{ order.customer }}</td>
+                  <td>{{ order.vendor }}</td>
+                  <td class="fw-medium">{{ order.amount }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="order.background">{{ order.percentage }}</span>
+                  </td>
+                  <td class="text-muted">{{ order.time }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Top Vendors -->
+    <div class="col-lg-4 mb-3">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Top Vendors</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush" *ngIf="dashboardData?.topVendors">
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0" 
+                 *ngFor="let vendor of dashboardData.topVendors.slice(0, 5); let i = index">
+              <div class="d-flex align-items-center">
+                <div class="avatar avatar-sm rounded-circle me-3 bg-light-primary">
+                  <span class="fw-bold text-primary">{{ i + 1 }}</span>
+                </div>
+                <div>
+                  <h6 class="mb-0">{{ vendor.businessName }}</h6>
+                  <small class="text-muted">{{ vendor.vendorCategory.name }}</small>
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="fw-medium">${{ vendor.totalSales.toLocaleString() }}</div>
+                <small class="text-muted">{{ vendor._count.products }} products</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <app-card>
+        <div class="card-header">
+          <h5 class="card-title mb-0">Platform Statistics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3 mb-3">
+              <div class="border-end">
+                <h4 class="text-primary mb-1">{{ dashboardData.globalSales.today.orders }}</h4>
+                <p class="text-muted mb-0">Orders Today</p>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="border-end">
+                <h4 class="text-success mb-1">${{ dashboardData.globalSales.today.revenue.toLocaleString() }}</h4>
+                <p class="text-muted mb-0">Revenue Today</p>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="border-end">
+                <h4 class="text-warning mb-1">{{ dashboardData.globalSales.thisMonth.orders }}</h4>
+                <p class="text-muted mb-0">Orders This Month</p>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div>
+                <h4 class="text-info mb-1">${{ dashboardData.globalSales.thisMonth.revenue.toLocaleString() }}</h4>
+                <p class="text-muted mb-0">Revenue This Month</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </div>
+</div>

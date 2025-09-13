@@ -1,0 +1,426 @@
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-1">User Management</h4>
+      <p class="text-muted mb-0">Manage users, suspend, block, and view user details</p>
+    </div>
+    <div>
+      <button 
+        class="btn btn-outline-primary" 
+        (click)="checkSuspensionStatus()"
+        [disabled]="loading">
+        <i antIcon type="reload" theme="outline" *ngIf="!loading" class="me-1"></i>
+        <i antIcon type="loading" theme="outline" *ngIf="loading" class="me-1"></i>
+        Check Suspensions
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <app-card class="mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i antIcon type="search" theme="outline"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by name or email..." 
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onSearch()"
+            >
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select 
+            class="form-select" 
+            [(ngModel)]="statusFilter" 
+            (change)="onFilterChange()">
+            <option value="">All Users</option>
+            <option value="blocked">Blocked</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select 
+            class="form-select" 
+            [(ngModel)]="itemsPerPage" 
+            (change)="onItemsPerPageChange()">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex gap-2">
+            <button 
+              class="btn btn-primary" 
+              (click)="onSearch()"
+              [disabled]="loading">
+              <i antIcon type="search" theme="outline" class="me-1"></i>
+              Search
+            </button>
+            <button 
+              class="btn btn-outline-secondary" 
+              (click)="searchTerm = ''; statusFilter = ''; onSearch()"
+              [disabled]="loading">
+              <i antIcon type="close" theme="outline" class="me-1"></i>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Users Table -->
+  <app-card>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Orders</th>
+                <th>Joined</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="loading">
+                <td colspan="7" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!loading && users.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No users found
+                </td>
+              </tr>
+              <tr *ngFor="let user of users" class="align-middle">
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-sm me-3">
+                      <div class="avatar-title bg-primary text-white rounded-circle">
+                        {{ user.name.charAt(0).toUpperCase() }}
+                      </div>
+                    </div>
+                    <div>
+                      <h6 class="mb-0">{{ user.name }}</h6>
+                      <small class="text-muted">ID: {{ user.id.substring(0, 8) }}...</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                    {{ user.email }}
+                  </span>
+                </td>
+                <td>
+                  <span 
+                    class="badge" 
+                    [ngClass]="getUserStatusClass(user)">
+                    {{ getUserStatusText(user) }}
+                  </span>
+                  <div *ngIf="user.isSuspended && user.suspendedUntil" class="small text-muted mt-1">
+                    Until: {{ formatDate(user.suspendedUntil) }}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-info">{{ user._count.orders }}</span>
+                </td>
+                <td>
+                  <small>{{ formatDate(user.createdAt) }}</small>
+                </td>
+                <td>
+                  <small *ngIf="user.lastLogin">{{ formatDate(user.lastLogin) }}</small>
+                  <small *ngIf="!user.lastLogin" class="text-muted">Never</small>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <button 
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="viewUserDetails(user, userDetailsModal)"
+                      [disabled]="loading"
+                      title="View Details">
+                      <i antIcon type="eye" theme="outline" class="me-1"></i>
+                    </button>
+                    <button 
+                      *ngIf="!user.isBlocked && !user.isSuspended"
+                      class="btn btn-sm btn-outline-warning"
+                      (click)="openSuspendModal(user, suspendModal)"
+                      [disabled]="loading"
+                      title="Suspend User">
+                      <i antIcon type="pause" theme="outline" class="me-1"></i>
+                    </button>
+                    <button 
+                      *ngIf="!user.isBlocked"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="openBlockModal(user, blockModal)"
+                      [disabled]="loading"
+                      title="Block User">
+                      <i antIcon type="stop" theme="outline" class="me-1"></i>
+                    </button>
+                    <button 
+                      *ngIf="user.isSuspended && !user.isBlocked"
+                      class="btn btn-sm btn-outline-success"
+                      (click)="unsuspendUser(user)"
+                      [disabled]="loading"
+                      title="Unsuspend User">
+                      <i antIcon type="caret-right" theme="outline" class="me-1"></i>
+                    </button>
+                    <button 
+                      *ngIf="user.isBlocked"
+                      class="btn btn-sm btn-outline-success"
+                      (click)="unblockUser(user)"
+                      [disabled]="loading"
+                      title="Unblock User">
+                      <i antIcon type="check" theme="outline" class="me-1"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="pagination.totalPages > 1">
+          <div class="text-muted">
+            Showing {{ (pagination.page - 1) * pagination.limit + 1 }} to 
+            {{ Math.min(pagination.page * pagination.limit, pagination.total) }} of 
+            {{ pagination.total }} users
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="pagination.page === 1">
+                <button 
+                  class="page-link" 
+                  (click)="onPageChange(pagination.page - 1)"
+                  [disabled]="pagination.page === 1">
+                  Previous
+                </button>
+              </li>
+              <li 
+                class="page-item" 
+                *ngFor="let page of getPageNumbers()"
+                [class.active]="page === pagination.page">
+                <button 
+                  class="page-link" 
+                  (click)="onPageChange(page)">
+                  {{ page }}
+                </button>
+              </li>
+              <li class="page-item" [class.disabled]="pagination.page === pagination.totalPages">
+                <button 
+                  class="page-link" 
+                  (click)="onPageChange(pagination.page + 1)"
+                  [disabled]="pagination.page === pagination.totalPages">
+                  Next
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+  </app-card>
+
+  <!-- Error Alert -->
+  <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="error">
+    <i antIcon type="exclamation-circle" theme="outline" class="me-2"></i>
+    {{ error }}
+    <button 
+      type="button" 
+      class="btn-close" 
+      (click)="error = null">
+    </button>
+  </div>
+
+<!-- User Details Modal -->
+<ng-template #userDetailsModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">User Details</h5>
+    <button type="button" class="btn-close" (click)="modal.close()"></button>
+  </div>
+  <div class="modal-body" *ngIf="selectedUser">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="text-center mb-3">
+          <div class="avatar-lg mx-auto mb-3">
+            <div class="avatar-title bg-primary text-white rounded-circle">
+              {{ selectedUser.name.charAt(0).toUpperCase() }}
+            </div>
+          </div>
+          <h5>{{ selectedUser.name }}</h5>
+          <p class="text-muted">{{ selectedUser.email }}</p>
+          <span 
+            class="badge" 
+            [ngClass]="getUserStatusClass(selectedUser)">
+            {{ getUserStatusText(selectedUser) }}
+          </span>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="row">
+          <div class="col-sm-6">
+            <h6>Basic Information</h6>
+            <p><strong>Phone:</strong> {{ selectedUser.phone || 'Not provided' }}</p>
+            <p><strong>Verified:</strong> {{ selectedUser.isVerified ? 'Yes' : 'No' }}</p>
+            <p><strong>Joined:</strong> {{ formatDate(selectedUser.createdAt) }}</p>
+            <p><strong>Last Login:</strong> {{ selectedUser.lastLogin ? formatDate(selectedUser.lastLogin) : 'Never' }}</p>
+          </div>
+          <div class="col-sm-6">
+            <h6>Statistics</h6>
+            <p><strong>Total Orders:</strong> {{ selectedUser._count.orders }}</p>
+            <p><strong>Addresses:</strong> {{ selectedUser._count.addresses }}</p>
+          </div>
+        </div>
+        
+        <div *ngIf="selectedUser.isSuspended && selectedUser.suspensionReason">
+          <h6 class="text-warning">Suspension Details</h6>
+          <p><strong>Reason:</strong> {{ selectedUser.suspensionReason }}</p>
+          <p><strong>Until:</strong> {{ selectedUser.suspendedUntil ? formatDate(selectedUser.suspendedUntil) : 'N/A' }}</p>
+        </div>
+        
+        <div *ngIf="selectedUser.isBlocked && selectedUser.blockReason">
+          <h6 class="text-danger">Block Details</h6>
+          <p><strong>Reason:</strong> {{ selectedUser.blockReason }}</p>
+          <p><strong>Blocked At:</strong> {{ selectedUser.blockedAt ? formatDate(selectedUser.blockedAt) : 'N/A' }}</p>
+        </div>
+
+        <div *ngIf="selectedUser.addresses.length > 0">
+          <h6>Addresses</h6>
+          <div class="row">
+            <div class="col-12" *ngFor="let address of selectedUser.addresses">
+              <div class="card mb-2">
+                <div class="card-body py-2">
+                  <small>
+                    {{ address.street }}, {{ address.building }}<br>
+                    {{ address.city }}<br>
+                    <span *ngIf="address.landmark">{{ address.landmark }}</span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedUser.orders.length > 0">
+          <h6>Recent Orders</h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Status</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of selectedUser.orders">
+                  <td>{{ order.orderNumber }}</td>
+                  <td><span class="badge bg-info">{{ order.status }}</span></td>
+                  <td>${{ order.totalAmount }}</td>
+                  <td>{{ formatDate(order.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">Close</button>
+  </div>
+</ng-template>
+
+<!-- Suspend User Modal -->
+<ng-template #suspendModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Suspend User</h5>
+    <button type="button" class="btn-close" (click)="modal.close()"></button>
+  </div>
+  <div class="modal-body">
+    <form (ngSubmit)="suspendUser()">
+      <div class="mb-3">
+        <label class="form-label">Duration (days)</label>
+        <select class="form-select" [(ngModel)]="suspendForm.duration" name="duration" required>
+          <option value="1">1 day</option>
+          <option value="3">3 days</option>
+          <option value="7">7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Reason</label>
+        <textarea 
+          class="form-control" 
+          rows="3" 
+          [(ngModel)]="suspendForm.reason" 
+          name="reason"
+          placeholder="Enter reason for suspension..."
+          required>
+        </textarea>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">Cancel</button>
+    <button 
+      type="button" 
+      class="btn btn-warning" 
+      (click)="suspendUser()"
+      [disabled]="!suspendForm.reason.trim() || loading">
+      <i antIcon type="pause" theme="outline" class="me-1"></i>
+      Suspend User
+    </button>
+  </div>
+</ng-template>
+
+<!-- Block User Modal -->
+<ng-template #blockModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Block User</h5>
+    <button type="button" class="btn-close" (click)="modal.close()"></button>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-warning">
+      <i antIcon type="warning" theme="outline" class="me-2"></i>
+      This will permanently block the user from accessing the platform.
+    </div>
+    <form (ngSubmit)="blockUser()">
+      <div class="mb-3">
+        <label class="form-label">Reason</label>
+        <textarea 
+          class="form-control" 
+          rows="3" 
+          [(ngModel)]="blockForm.reason" 
+          name="reason"
+          placeholder="Enter reason for blocking..."
+          required>
+        </textarea>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">Cancel</button>
+    <button 
+      type="button" 
+      class="btn btn-danger" 
+      (click)="blockUser()"
+      [disabled]="!blockForm.reason.trim() || loading">
+      <i antIcon type="stop" theme="outline" class="me-1"></i>
+      Block User
+    </button>
+  </div>
+</ng-template>
